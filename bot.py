@@ -10,6 +10,7 @@ Auth: OAuth2 (token.json + credentials.json — installed app flow)
 import logging
 import os
 import json
+from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
@@ -24,12 +25,14 @@ from telegram.ext import (
 )
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-TELEGRAM_TOKEN  = "8883092085:AAFhBzTbGD7bHewU6OLOjoMilYdAMRooe_Q"
-SPREADSHEET_ID  = "1dPMLPiBKHcbH1hCzLct2APwYEB6t2OiyI7Lus8AMaxA"
-SHEET_NAME      = "Sheet1"          # Change if your tab is named differently
-TOKEN_FILE      = "token.json"
-CREDENTIALS_FILE= "credentials.json"
-SCOPES          = [
+load_dotenv()
+
+TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
+SPREADSHEET_ID   = os.getenv("SPREADSHEET_ID")
+SHEET_NAME       = os.getenv("SHEET_NAME", "Sheet1")
+TOKEN_FILE       = os.getenv("TOKEN_FILE", "token.json")
+CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE", "credentials.json")
+SCOPES           = [
     "https://www.googleapis.com/auth/spreadsheets.readonly",
     "https://www.googleapis.com/auth/drive.readonly",
 ]
