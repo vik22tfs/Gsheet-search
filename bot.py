@@ -34,13 +34,14 @@ TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
 SPREADSHEET_ID   = os.getenv("SPREADSHEET_ID")
 SHEET_NAME       = os.getenv("SHEET_NAME", "Sheet1")
 
-# Google OAuth2 credentials loaded from env vars (Railway) or JSON files (local)
-GOOGLE_TOKEN_JSON       = os.getenv("GOOGLE_TOKEN_JSON")        # contents of token.json
-GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON")  # contents of credentials.json
+# Google OAuth2 — accept either naming convention
+# Railway variables can be named GOOGLE_TOKEN_JSON or TOKEN_FILE (either works)
+GOOGLE_TOKEN_JSON       = os.getenv("GOOGLE_TOKEN_JSON") or os.getenv("TOKEN_FILE")
+GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON") or os.getenv("CREDENTIALS_FILE")
 
 # Fallback file paths for local development
-TOKEN_FILE       = os.getenv("TOKEN_FILE", "token.json")
-CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE", "credentials.json")
+TOKEN_FILE       = "token.json"
+CREDENTIALS_FILE = "credentials.json"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets.readonly",
