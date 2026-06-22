@@ -10,7 +10,10 @@ Auth: OAuth2 (token.json + credentials.json — installed app flow)
 import logging
 import os
 import json
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = lambda: None  # Railway uses real env vars; dotenv not needed
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
