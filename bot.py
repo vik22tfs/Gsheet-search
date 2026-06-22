@@ -30,9 +30,16 @@ load_dotenv()
 TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
 SPREADSHEET_ID   = os.getenv("SPREADSHEET_ID")
 SHEET_NAME       = os.getenv("SHEET_NAME", "Sheet1")
+
+# Google OAuth2 credentials loaded from env vars (Railway) or JSON files (local)
+GOOGLE_TOKEN_JSON       = os.getenv("GOOGLE_TOKEN_JSON")        # contents of token.json
+GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON")  # contents of credentials.json
+
+# Fallback file paths for local development
 TOKEN_FILE       = os.getenv("TOKEN_FILE", "token.json")
 CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE", "credentials.json")
-SCOPES           = [
+
+SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets.readonly",
     "https://www.googleapis.com/auth/drive.readonly",
 ]
@@ -52,24 +59,32 @@ logger = logging.getLogger(__name__)
 
 def get_credentials() -> Credentials:
     """
-    Load OAuth2 credentials from token.json.
-    Automatically refreshes the access token if expired using credentials.json.
+    Load OAuth2 credentials from:
+      1. GOOGLE_TOKEN_JSON env var (Railway / production), or
+      2. token.json file (local development fallback)
+    Refreshes automatically if the access token is expired.
     """
-    if not os.path.exists(TOKEN_FILE):
-        raise FileNotFoundError(
-            f"'{TOKEN_FILE}' not found. Place it in the same folder as bot.py."
+    # ── Load token ────────────────────────────────────────────────────────────
+    if GOOGLE_TOKEN_JSON:
+        logger.info("Loading credentials from GOOGLE_TOKEN_JSON env var")
+        token_data = json.loads(GOOGLE_TOKEN_JSON)
+        creds = Credentials.from_authorized_user_info(token_data, SCOPES)
+    elif os.path.exists(TOKEN_FILE):
+        logger.info(f"Loading credentials from {TOKEN_FILE}")
+        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+    else:
+        raise EnvironmentError(
+            "No Google credentials found. Set GOOGLE_TOKEN_JSON env var (Railway) "
+            f"or place {TOKEN_FILE} next to bot.py (local)."
         )
 
-    creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-
-    # Refresh if expired
+    # ── Refresh if expired ────────────────────────────────────────────────────
     if creds and creds.expired and creds.refresh_token:
         logger.info("Access token expired — refreshing…")
         creds.refresh(Request())
-        # Save refreshed token back to disk
-        with open(TOKEN_FILE, "w") as f:
-            f.write(creds.to_json())
-        logger.info("Token refreshed and saved.")
+        logger.info("Token refreshed successfully.")
+        # Note: on Railway we cannot write back to a file, but the refreshed
+        # token is kept in memory for the lifetime of the process.
 
     return creds
 
